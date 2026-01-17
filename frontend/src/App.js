@@ -1,90 +1,69 @@
+
 import React, { useState } from 'react';
-import WorkflowCanvas from './components/WorkflowCanvas';
-import ComponentPanel from './components/ComponentPanel';
-import ConfigPanel from './components/ConfigPanel';
-import ChatModal from './components/ChatModal';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import HomePage from './pages/HomePage';
+import StackListPage from './pages/StackListPage';
+import CanvasPage from './pages/CanvasPage';
 import './App.css';
 
 function App() {
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [showChat, setShowChat] = useState(false);
-  const [workflowNodes, setWorkflowNodes] = useState([]);
-  const [workflowEdges, setWorkflowEdges] = useState([]);
+  const [currentPage, setCurrentPage] = useState('home');
+  const [stacks, setStacks] = useState([]);
+  const [selectedStack, setSelectedStack] = useState(null);
 
-  const validateWorkflow = () => {
-    if (workflowNodes.length === 0) {
-      toast.error('Add components to build a workflow');
-      return false;
-    }
-
-    const hasUserQuery = workflowNodes.some(n => n.type === 'userQuery');
-    const hasLLM = workflowNodes.some(n => n.type === 'llmEngine');
-    const hasOutput = workflowNodes.some(n => n.type === 'output');
-
-    if (!hasUserQuery || !hasLLM || !hasOutput) {
-      toast.error('Workflow must have User Query, LLM Engine, and Output components');
-      return false;
-    }
-
-    return true;
+  const handleCreateStack = (stackData) => {
+    const newStack = {
+      id: Date.now(),
+      name: stackData.name,
+      description: stackData.description,
+      nodes: [],
+      edges: [],
+      createdAt: new Date()
+    };
+    setStacks([...stacks, newStack]);
+    setCurrentPage('stacks');
   };
 
-  const handleBuildStack = () => {
-    if (validateWorkflow()) {
-      toast.success('Workflow validated successfully!');
-    }
+  const handleEditStack = (stack) => {
+    setSelectedStack(stack);
+    setCurrentPage('canvas');
   };
 
-  const handleChatWithStack = () => {
-    if (validateWorkflow()) {
-      setShowChat(true);
-    }
+  const handleUpdateStack = (stackId, nodes, edges) => {
+    setStacks(stacks.map(stack => 
+      stack.id === stackId 
+        ? { ...stack, nodes, edges }
+        : stack
+    ));
+  };
+
+  const handleBackToStacks = () => {
+    setCurrentPage('stacks');
+    setSelectedStack(null);
   };
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>Workflow Builder</h1>
-        <div className="header-actions">
-          <button className="btn-primary" onClick={handleBuildStack}>
-            Build Stack
-          </button>
-          <button className="btn-secondary" onClick={handleChatWithStack}>
-            Chat with Stack
-          </button>
-        </div>
-      </header>
-
-      <div className="app-content">
-        <ComponentPanel />
-        
-        <WorkflowCanvas 
-          selectedNode={selectedNode}
-          setSelectedNode={setSelectedNode}
-          workflowNodes={workflowNodes}
-          setWorkflowNodes={setWorkflowNodes}
-          workflowEdges={workflowEdges}
-          setWorkflowEdges={setWorkflowEdges}
-        />
-        
-        <ConfigPanel 
-          selectedNode={selectedNode}
-          workflowNodes={workflowNodes}
-          setWorkflowNodes={setWorkflowNodes}
-        />
-      </div>
-
-      {showChat && (
-        <ChatModal 
-          onClose={() => setShowChat(false)}
-          workflowNodes={workflowNodes}
-          workflowEdges={workflowEdges}
+    <div className="app">
+      {currentPage === 'home' && (
+        <HomePage 
+          onCreateStack={() => setCurrentPage('stacks')}
         />
       )}
-
-      <ToastContainer position="bottom-right" />
+      
+      {currentPage === 'stacks' && (
+        <StackListPage 
+          stacks={stacks}
+          onCreateStack={handleCreateStack}
+          onEditStack={handleEditStack}
+        />
+      )}
+      
+      {currentPage === 'canvas' && selectedStack && (
+        <CanvasPage 
+          stack={selectedStack}
+          onUpdateStack={handleUpdateStack}
+          onBack={handleBackToStacks}
+        />
+      )}
     </div>
   );
 }

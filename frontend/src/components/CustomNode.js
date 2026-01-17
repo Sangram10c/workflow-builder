@@ -1,27 +1,25 @@
+// FILE: frontend/src/components/CustomNode.js
+
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 
-const CustomNode = ({ data, id, type }) => {
-  const getNodeStyle = () => {
-    const styles = {
-      userQuery: { bg: '#4F46E5', icon: '💬' },
-      knowledgeBase: { bg: '#059669', icon: '📚' },
-      llmEngine: { bg: '#DC2626', icon: '🤖' },
-      output: { bg: '#7C3AED', icon: '📤' }
-    };
-    return styles[type] || styles.userQuery;
+const CustomNode = ({ data, type }) => {
+  const icons = {
+    userQuery: '💬',
+    llmEngine: '🤖',
+    knowledgeBase: '📚',
+    webSearch: '🔍',
+    output: '📤'
   };
 
-  const style = getNodeStyle();
-
   return (
-    <div className="custom-node" style={{ borderColor: style.bg }}>
+    <div className="custom-node">
       {type !== 'userQuery' && (
         <Handle type="target" position={Position.Top} />
       )}
       
-      <div className="node-header" style={{ background: style.bg }}>
-        <span className="node-icon">{style.icon}</span>
+      <div className="node-header">
+        <span className="node-icon">{icons[type]}</span>
         <span className="node-label">{data.label}</span>
       </div>
       
